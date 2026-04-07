@@ -1,0 +1,5 @@
+{
+  "name": "Throughthink Chat",
+  "description": "A blazing fast, minimal chat client for LLMs using OpenRouter.",
+  "requestFramePermissions": []
+}
