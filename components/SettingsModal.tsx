@@ -49,13 +49,42 @@ const PROVIDER_LOGOS: Record<string, { svg: string; color: string }> = {
 };
 
 const DEFAULT_MODELS = [
- { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash (Fast)', provider: 'google' },
- { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'google' },
- { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'anthropic' },
- { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', provider: 'anthropic' },
- { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'openai' },
- { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', provider: 'openai' },
- { id: 'meta-llama/llama-3-70b-instruct', name: 'Llama 3 70B', provider: 'meta' },
+ // Google
+ { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'google', tag: 'Fast' },
+ { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'google', tag: 'Smart' },
+ { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', provider: 'google', tag: 'Fast' },
+ // Anthropic
+ { id: 'anthropic/claude-opus-4-5', name: 'Claude Opus 4.5', provider: 'anthropic', tag: 'Best' },
+ { id: 'anthropic/claude-sonnet-4-5', name: 'Claude Sonnet 4.5', provider: 'anthropic', tag: 'Smart' },
+ { id: 'anthropic/claude-3.7-sonnet', name: 'Claude 3.7 Sonnet', provider: 'anthropic', tag: '' },
+ { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'anthropic', tag: '' },
+ { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', provider: 'anthropic', tag: 'Fast' },
+ // OpenAI
+ { id: 'openai/gpt-4.1', name: 'GPT-4.1', provider: 'openai', tag: 'Smart' },
+ { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'openai', tag: '' },
+ { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', provider: 'openai', tag: 'Fast' },
+ { id: 'openai/o3', name: 'o3', provider: 'openai', tag: 'Reasoning' },
+ { id: 'openai/o4-mini', name: 'o4-mini', provider: 'openai', tag: 'Reasoning' },
+ // Meta
+ { id: 'meta-llama/llama-4-scout', name: 'Llama 4 Scout', provider: 'meta', tag: 'Fast' },
+ { id: 'meta-llama/llama-4-maverick', name: 'Llama 4 Maverick', provider: 'meta', tag: '' },
+ { id: 'meta-llama/llama-3-70b-instruct', name: 'Llama 3 70B', provider: 'meta', tag: '' },
+ // DeepSeek
+ { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', provider: 'deepseek', tag: 'Reasoning' },
+ { id: 'deepseek/deepseek-chat-v3-0324', name: 'DeepSeek V3', provider: 'deepseek', tag: '' },
+ // Mistral
+ { id: 'mistralai/mistral-large', name: 'Mistral Large', provider: 'mistral', tag: '' },
+ { id: 'mistralai/mistral-small', name: 'Mistral Small', provider: 'mistral', tag: 'Fast' },
+ // xAI
+ { id: 'x-ai/grok-3', name: 'Grok 3', provider: 'xai', tag: '' },
+ { id: 'x-ai/grok-3-mini', name: 'Grok 3 Mini', provider: 'xai', tag: 'Fast' },
+];
+
+const DEFAULT_VIDEO_MODELS = [
+ { id: 'minimax/video-01', name: 'Hailuo Video (MiniMax)' },
+ { id: 'google/veo-2', name: 'Veo 2 (Google)' },
+ { id: 'kling/kling-video-1.0-standard', name: 'Kling 1.0 Standard' },
+ { id: 'kling/kling-video-1.0-pro', name: 'Kling 1.0 Pro' },
 ];
 
 export function SettingsModal() {
@@ -68,6 +97,8 @@ export function SettingsModal() {
  setModel,
  imageModel,
  setImageModel,
+ videoModel,
+ setVideoModel,
  systemPrompt,
  setSystemPrompt,
  customModels,
@@ -77,6 +108,7 @@ export function SettingsModal() {
  const { language, setLanguage } = useLanguageStore();
 
  const [newModelId, setNewModelId] = useState('');
+ const [modelSearch, setModelSearch] = useState('');
 
  const handleAddCustomModel = (e: React.FormEvent) => {
  e.preventDefault();
@@ -94,20 +126,45 @@ export function SettingsModal() {
  }
  };
 
- const renderModelItem = (id: string, name: string, provider?: string, isCustom?: boolean) => {
+ const filteredModels = modelSearch.trim()
+ ? DEFAULT_MODELS.filter(m =>
+ m.name.toLowerCase().includes(modelSearch.toLowerCase()) ||
+ m.id.toLowerCase().includes(modelSearch.toLowerCase())
+ )
+ : DEFAULT_MODELS;
+
+ // Group filtered models by provider
+ const providers = Array.from(new Set(filteredModels.map(m => m.provider)));
+
+ const PROVIDER_NAMES: Record<string, string> = {
+ google: 'Google',
+ anthropic: 'Anthropic',
+ openai: 'OpenAI',
+ meta: 'Meta',
+ deepseek: 'DeepSeek',
+ mistral: 'Mistral',
+ xai: 'xAI',
+ };
+
+ const renderModelItem = (id: string, name: string, provider?: string, tag?: string, isCustom?: boolean) => {
  const logoData = provider ? PROVIDER_LOGOS[provider] : null;
 
  return (
  <div className="flex items-center justify-between w-full gap-2">
- <div className="flex items-center gap-2">
+ <div className="flex items-center gap-2 min-w-0">
  {logoData ? (
- <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ fill: logoData.color }}>
+ <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" style={{ fill: logoData.color }}>
  <path d={logoData.svg} />
  </svg>
  ) : (
- <div className="w-4 h-4 rounded-full bg-foreground/20" />
+ <div className="w-4 h-4 rounded-full bg-foreground/20 shrink-0" />
  )}
- <span>{name}</span>
+ <span className="truncate">{name}</span>
+ {tag && (
+ <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/10 text-foreground/50 font-medium shrink-0">
+ {tag}
+ </span>
+ )}
  </div>
  {isCustom && (
  <button
@@ -116,7 +173,7 @@ export function SettingsModal() {
  removeCustomModel(id);
  }}
  onKeyDown={(e) => handleDeleteKeyDown(e, id)}
- className="text-foreground/40 hover:text-red-400 p-1 rounded hover:bg-accent transition-colors"
+ className="text-foreground/40 hover:text-red-400 p-1 rounded hover:bg-accent transition-colors shrink-0"
  aria-label={`Remove custom model ${name}`}
  >
  <Trash2 className="w-3 h-3" />
@@ -128,7 +185,7 @@ export function SettingsModal() {
 
  return (
  <Dialog open={isSettingsOpen} onOpenChange={setSettingsOpen}>
- <DialogContent className="sm:max-w-[425px] bg-card border-border text-foreground shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+ <DialogContent className="sm:max-w-[440px] bg-card border-border text-foreground shadow-[0_0_40px_rgba(0,0,0,0.5)]">
  <DialogHeader>
  <DialogTitle className="text-xl font-medium tracking-tight">{t('settingsTitle', language)}</DialogTitle>
  <DialogDescription className="text-muted-foreground">
@@ -161,30 +218,65 @@ export function SettingsModal() {
  />
  </div>
 
+ {/* Model Picker */}
  <div className="grid gap-2">
  <Label htmlFor="model" className="text-foreground/70">{t('modelLabel', language)}</Label>
- <Select value={model} onValueChange={setModel}>
+ <Select value={model} onValueChange={(val) => { setModel(val); setModelSearch(''); }}>
  <SelectTrigger className="bg-secondary border-border focus:ring-1 focus:ring-ring text-foreground">
- <SelectValue placeholder={t('selectModelPlaceholder', language)} />
+ <SelectValue placeholder={t('selectModelPlaceholder', language)}>
+ {model && (() => {
+ const found = DEFAULT_MODELS.find(m => m.id === model);
+ if (found) return renderModelItem(found.id, found.name, found.provider, found.tag);
+ return <span>{model}</span>;
+ })()}
+ </SelectValue>
  </SelectTrigger>
- <SelectContent className="bg-popover border-border text-foreground max-h-[300px]">
- {DEFAULT_MODELS.map((m) => (
+ <SelectContent className="bg-popover border-border text-foreground max-h-[360px]">
+ {/* Search box inside dropdown */}
+ <div className="p-2 sticky top-0 bg-popover z-10 border-b border-border">
+ <input
+ value={modelSearch}
+ onChange={(e) => setModelSearch(e.target.value)}
+ placeholder="Search models..."
+ className="w-full px-3 py-1.5 text-sm bg-secondary border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+ onKeyDown={(e) => e.stopPropagation()}
+ onClick={(e) => e.stopPropagation()}
+ />
+ </div>
+
+ {providers.map((provider) => {
+ const providerModels = filteredModels.filter(m => m.provider === provider);
+ if (providerModels.length === 0) return null;
+ return (
+ <div key={provider}>
+ <div className="px-2 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+ {PROVIDER_NAMES[provider] || provider}
+ </div>
+ {providerModels.map((m) => (
  <SelectItem key={m.id} value={m.id}>
- {renderModelItem(m.id, m.name, m.provider)}
+ {renderModelItem(m.id, m.name, m.provider, m.tag)}
  </SelectItem>
  ))}
-
- {customModels.length > 0 && (
- <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2 border-t border-border pt-2">
- {t('customModelsHeader', language)}
  </div>
+ );
+ })}
+
+ {filteredModels.length === 0 && (
+ <div className="px-2 py-4 text-sm text-muted-foreground text-center">No models found</div>
  )}
 
+ {customModels.length > 0 && (
+ <>
+ <div className="px-2 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mt-1 border-t border-border pt-2">
+ {t('customModelsHeader', language)}
+ </div>
  {customModels.map((m) => (
  <SelectItem key={m} value={m}>
- {renderModelItem(m, m, undefined, true)}
+ {renderModelItem(m, m, undefined, undefined, true)}
  </SelectItem>
  ))}
+ </>
+ )}
  </SelectContent>
  </Select>
  </div>
@@ -217,6 +309,25 @@ export function SettingsModal() {
  </div>
 
  <div className="grid gap-2 pt-2 border-t border-border">
+ <Label htmlFor="videoModel" className="text-foreground/70">
+ {t('videoModelLabel', language)}
+ <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-medium">Experimental</span>
+ </Label>
+ <Select value={videoModel} onValueChange={setVideoModel}>
+ <SelectTrigger id="videoModel" className="bg-secondary border-border focus:ring-1 focus:ring-ring text-foreground">
+ <SelectValue placeholder={t('videoModelPlaceholder', language)} />
+ </SelectTrigger>
+ <SelectContent className="bg-popover border-border text-foreground">
+ {DEFAULT_VIDEO_MODELS.map((m) => (
+ <SelectItem key={m.id} value={m.id}>
+ <span>{m.name}</span>
+ </SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
+ </div>
+
+ <div className="grid gap-2 pt-2 border-t border-border">
  <Label htmlFor="systemPrompt" className="text-foreground/70">{t('systemPromptLabel', language)}</Label>
  <Textarea
  id="systemPrompt"
@@ -229,5 +340,5 @@ export function SettingsModal() {
  </div>
  </DialogContent>
  </Dialog>
-);
+ );
 }

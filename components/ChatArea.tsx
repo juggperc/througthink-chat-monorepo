@@ -4,7 +4,7 @@ import { useLanguageStore } from '@/store/languageStore';
 import { t } from '@/lib/i18n';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MiniAppRenderer } from './MiniAppRenderer';
-import { Bot, User, FileCode2, FileText, Terminal, Search, LayoutTemplate, Image as ImageIcon, FileSpreadsheet } from 'lucide-react';
+import { Bot, User, FileCode2, FileText, Terminal, Search, LayoutTemplate, Image as ImageIcon, FileSpreadsheet, Video } from 'lucide-react';
 
 const getAttachmentIcon = (type: Attachment['type']) => {
  switch (type) {
@@ -49,6 +49,33 @@ const ChatMessage = memo(({ message, isLast, isGenerating }: { message: Message,
  }
  }
 
+ if (message.tool_name === 'generate_video') {
+ const match = message.content.match(/\[video:(.*?)\]\((.*?)\)/);
+ if (match) {
+ return (
+ <div className="py-2 w-full flex justify-start">
+ <div className="w-full pl-12">
+ <div className="relative group rounded-2xl overflow-hidden border border-border shadow-lg max-w-lg">
+ <video
+ src={match[2]}
+ controls
+ autoPlay
+ loop
+ muted
+ playsInline
+ className="w-full h-auto"
+ aria-label={match[1]}
+ />
+ <div className="px-3 py-2 bg-card/80 backdrop-blur-sm border-t border-border">
+ <p className="text-xs text-muted-foreground truncate">{match[1]}</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ );
+ }
+ }
+
  if (message.tool_name === 'create_mini_app') {
  const codeMatch = message.content.match(/```react\n([\s\S]*?)\n```/);
  if (codeMatch) {
@@ -68,6 +95,7 @@ const ChatMessage = memo(({ message, isLast, isGenerating }: { message: Message,
  if (message.tool_name === 'context7_search') Icon = Search;
  if (message.tool_name === 'create_mini_app') Icon = LayoutTemplate;
  if (message.tool_name === 'generate_image') Icon = ImageIcon;
+ if (message.tool_name === 'generate_video') Icon = Video;
 
  const toolNameDisplay = message.tool_name?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || message.tool_name;
 

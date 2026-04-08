@@ -50,6 +50,7 @@ interface ChatState {
  apiKey: string;
  model: string;
  imageModel: string;
+ videoModel: string;
  systemPrompt: string;
  customModels: string[];
  chats: Chat[];
@@ -63,6 +64,7 @@ interface ChatState {
  setApiKey: (key: string) => void;
  setModel: (model: string) => void;
  setImageModel: (model: string) => void;
+ setVideoModel: (model: string) => void;
  setSystemPrompt: (prompt: string) => void;
  addCustomModel: (model: string) => void;
  removeCustomModel: (model: string) => void;
@@ -89,15 +91,16 @@ Your primary goal is to provide accurate, direct, and highly efficient answers w
 - Assume the user is an expert unless context suggests otherwise.
 
 Available tools you can use:
-- generate_image: Create images from descriptions
-- write_file/read_file/list_files/delete_file: Manage a virtual file system
+- generate_image: Create images from text descriptions
+- generate_video: (Experimental) Generate short video clips via OpenRouter (e.g. minimax/video-01, google/veo-2)
+- write_file/read_file/list_files/delete_file: Manage a persistent virtual file system
 - run_python: Execute Python code for calculations and data processing
 - create_mini_app: Build interactive React mini-applications with UI components
-- context7_search: Search library documentation
+- context7_search: Search official library documentation
 - web_search: Search the web for current information
 
 When creating mini-apps, you have access to these UI components (no import needed):
-Card, CardHeader, CardTitle, CardContent, CardDescription, Button, Input, Label, Textarea, Badge, Separator, Progress, Skeleton, Switch, Slider, Select, Tabs
+Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter, Button, Input, Label, Textarea, Badge, Separator, Progress, Skeleton, Switch, Slider, Select, Tabs
 
 You can import from 'lucide-react' for icons and 'recharts' for charts. Use React.useState, React.useEffect, etc. for hooks. Style with Tailwind CSS classes.`;
 
@@ -107,6 +110,7 @@ export const useChatStore = create<ChatState>()(
  apiKey: '',
  model: 'google/gemini-2.5-flash', // Default fast model
  imageModel: 'flux', // Default image generation model for pollinations
+ videoModel: 'minimax/video-01', // Default video generation model for OpenRouter
  systemPrompt: DEFAULT_SYSTEM_PROMPT,
  customModels: [],
  chats: [],
@@ -119,6 +123,7 @@ export const useChatStore = create<ChatState>()(
  setApiKey: (apiKey) => set({ apiKey }),
  setModel: (model) => set({ model }),
  setImageModel: (imageModel) => set({ imageModel }),
+ setVideoModel: (videoModel) => set({ videoModel }),
  setSystemPrompt: (systemPrompt) => set({ systemPrompt }),
  setIsGenerating: (isGenerating) => set({ isGenerating }),
  setCurrentView: (currentView) => set({ currentView }),
@@ -240,6 +245,7 @@ export const useChatStore = create<ChatState>()(
  apiKey: state.apiKey,
  model: state.model,
  imageModel: state.imageModel,
+ videoModel: state.videoModel,
  systemPrompt: state.systemPrompt,
  customModels: state.customModels,
  chats: state.chats,

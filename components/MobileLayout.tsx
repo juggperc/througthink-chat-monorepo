@@ -51,7 +51,7 @@ export function MobileLayout() {
  };
 
  return (
- <div className="md:hidden flex flex-col h-full w-full bg-flowing relative z-50">
+ <div className="md:hidden flex flex-col bg-flowing relative z-50" style={{ height: '100dvh' }}>
  {/* Top Header */}
  <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-sidebar/80 backdrop-blur-md z-10 shrink-0">
  <div className="relative group cursor-pointer" onClick={() => setIsTutorialOpen(true)}>
@@ -79,7 +79,7 @@ export function MobileLayout() {
  </header>
 
  {/* Main Content Area */}
- <main className="flex-1 overflow-hidden relative">
+ <main className="flex-1 overflow-hidden relative min-h-0">
  <AnimatePresence mode="wait">
  {mobileTab === 'chat' && (
  <motion.div
@@ -184,12 +184,15 @@ export function MobileLayout() {
  </main>
 
  {/* Bottom Navigation */}
- <nav className="h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] border-t border-border bg-sidebar flex items-center justify-around px-2 shrink-0">
+ <nav
+  className="border-t border-border bg-sidebar flex items-center justify-around px-2 shrink-0"
+  style={{ paddingBottom: 'env(safe-area-inset-bottom)', height: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
+ >
  <button
  onClick={() => handleTabChange('chat')}
  onKeyDown={(e) => e.key === 'Enter' && handleTabChange('chat')}
  className={cn(
- "flex flex-col items-center justify-center w-16 h-16 gap-1 transition-colors rounded-lg",
+ "flex flex-col items-center justify-center w-14 h-12 gap-0.5 transition-colors rounded-lg",
  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
  mobileTab === 'chat' ? "text-foreground" : "text-foreground/40 hover:text-foreground/70"
  )}
@@ -203,7 +206,7 @@ export function MobileLayout() {
  onClick={() => handleTabChange('history')}
  onKeyDown={(e) => e.key === 'Enter' && handleTabChange('history')}
  className={cn(
- "flex flex-col items-center justify-center w-16 h-16 gap-1 transition-colors rounded-lg",
+ "flex flex-col items-center justify-center w-14 h-12 gap-0.5 transition-colors rounded-lg",
  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
  mobileTab === 'history' ? "text-foreground" : "text-foreground/40 hover:text-foreground/70"
  )}
@@ -217,7 +220,7 @@ export function MobileLayout() {
  onClick={() => handleTabChange('files')}
  onKeyDown={(e) => e.key === 'Enter' && handleTabChange('files')}
  className={cn(
- "flex flex-col items-center justify-center w-16 h-16 gap-1 transition-colors rounded-lg",
+ "flex flex-col items-center justify-center w-14 h-12 gap-0.5 transition-colors rounded-lg",
  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
  mobileTab === 'files' ? "text-foreground" : "text-foreground/40 hover:text-foreground/70"
  )}
@@ -231,7 +234,7 @@ export function MobileLayout() {
  onClick={() => handleTabChange('library')}
  onKeyDown={(e) => e.key === 'Enter' && handleTabChange('library')}
  className={cn(
- "flex flex-col items-center justify-center w-16 h-16 gap-1 transition-colors rounded-lg",
+ "flex flex-col items-center justify-center w-14 h-12 gap-0.5 transition-colors rounded-lg",
  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
  mobileTab === 'library' ? "text-foreground" : "text-foreground/40 hover:text-foreground/70"
  )}
@@ -243,7 +246,7 @@ export function MobileLayout() {
  </button>
  <button
  onClick={() => setSettingsOpen(true)}
- className="flex flex-col items-center justify-center w-16 h-16 gap-1 text-foreground/40 hover:text-foreground/70 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+ className="flex flex-col items-center justify-center w-14 h-12 gap-0.5 text-foreground/40 hover:text-foreground/70 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
  aria-label="Settings"
  >
  <Settings className="w-5 h-5" />
