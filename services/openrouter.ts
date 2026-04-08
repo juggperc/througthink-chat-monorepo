@@ -10,6 +10,71 @@ export interface OpenRouterMessage {
   tool_call_id?: string;
 }
 
+// Video generation via OpenRouter (experimental)
+// https://openrouter.ai/docs/video-generation
+export async function generateVideo(
+  prompt: string,
+  apiKey: string,
+  model: string,
+  imageUrl?: string
+): Promise<string> {
+  const body: Record<string, unknown> = { model, prompt };
+  if (imageUrl) body.image_url = imageUrl;
+
+  const createRes = await fetch('https://openrouter.ai/api/v1/video/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': window.location.href,
+      'X-Title': 'Throughthink Chat',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!createRes.ok) {
+    const errorData = await createRes.json().catch(() => null);
+    throw new Error(errorData?.error?.message || `Video API Error: ${createRes.status} ${createRes.statusText}`);
+  }
+
+  const { id } = await createRes.json();
+  if (!id) throw new Error('No generation ID returned from video API');
+
+  // Poll until the generation is complete (max ~3 minutes)
+  const maxAttempts = 36;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(r => setTimeout(r, 5000));
+
+    const pollRes = await fetch(`https://openrouter.ai/api/v1/video/generations/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'Throughthink Chat',
+      },
+    });
+
+    if (!pollRes.ok) {
+      const errorData = await pollRes.json().catch(() => null);
+      throw new Error(errorData?.error?.message || `Video poll error: ${pollRes.status}`);
+    }
+
+    const pollData = await pollRes.json();
+
+    if (pollData.status === 'complete' || pollData.status === 'succeeded') {
+      const url = pollData.data?.[0]?.url;
+      if (!url) throw new Error('Video generation completed but no URL was returned');
+      return url;
+    }
+
+    if (pollData.status === 'failed' || pollData.status === 'error') {
+      throw new Error(pollData.error?.message || 'Video generation failed');
+    }
+    // status === 'processing' / 'queued' — keep polling
+  }
+
+  throw new Error('Video generation timed out. Please try again.');
+}
+
 export async function* streamOpenRouterResponse(
   messages: OpenRouterMessage[],
   apiKey: string,

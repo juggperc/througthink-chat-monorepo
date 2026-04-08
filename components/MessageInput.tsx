@@ -22,6 +22,7 @@ export function MessageInput() {
  apiKey,
  model,
  imageModel,
+ videoModel,
  systemPrompt,
  currentChatId,
  chats,
@@ -191,7 +192,7 @@ export function MessageInput() {
  for (const tc of receivedToolCalls) {
  try {
  const args = JSON.parse(tc.function.arguments || '{}');
- const toolResult = await executeTool(tc.function.name, args, imageModel);
+ const toolResult = await executeTool(tc.function.name, args, imageModel, apiKey, videoModel);
 
  addMessage(activeChatId!, { role: 'tool', content: toolResult, tool_call_id: tc.id, tool_name: tc.function.name });
  newApiMessages.push({ role: 'tool', content: toolResult, tool_call_id: tc.id, name: tc.function.name });
