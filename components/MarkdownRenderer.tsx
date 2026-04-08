@@ -83,7 +83,7 @@ const MarkdownComponents = {
  code({ node, inline, className, children, ...props }: any) {
  const match = /language-(\w+)/.exec(className || '');
  const codeString = String(children).replace(/\n$/, '');
- 
+
  return !inline && match ? (
  <div className="relative rounded-lg overflow-hidden border border-border my-4">
  <div className="flex items-center justify-between px-4 py-2 bg-secondary/50 border-b border-border text-xs text-muted-foreground">
@@ -150,18 +150,22 @@ const MarkdownComponents = {
  ),
 };
 
+const THINK_START = '<think>';
+const THINK_END = '</think>';
+
 export const MarkdownRenderer = memo(({ content, className }: MarkdownRendererProps) => {
- // Parse <arg_key> tags
- const parts = content.split(/(占了[\s\S]*?(?:<\/think>|$))/g).filter(Boolean);
+ // Parse thinking tags
+ const thinkRegex = new RegExp(`(${THINK_START}[\\s\\S]*?(?:${THINK_END}|$))`, 'g');
+ const parts = content.split(thinkRegex).filter(Boolean);
 
  return (
  <div className={cn("prose prose-invert max-w-none break-words", className)}>
  {parts.map((part, index) => {
- if (part.startsWith('
-')) {
- const isClosed = part.endsWith('</think>');
- const innerContent = part.replace(/^
-/, '').replace(/<\/think>$/, '');
+ if (part.startsWith(THINK_START)) {
+ const isClosed = part.endsWith(THINK_END);
+ const innerContent = part
+ .slice(THINK_START.length)
+ .replace(new RegExp(`${THINK_END}$`), '');
  return <ThinkingBlock key={index} content={innerContent} isClosed={isClosed} />;
  }
 
